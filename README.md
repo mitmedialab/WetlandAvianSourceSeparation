@@ -1,4 +1,4 @@
-Multi channel audio mono Source separation for birds with deep learning
+Audio mono Source separation for birds with deep learning
 
 
 
