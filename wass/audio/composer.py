@@ -73,7 +73,7 @@ class Sequencer:
     Attributes:
         name {str} -- sequencer label
         directory {str} -- path to the directory containing the audios
-        size {Tuple[float, float]} -- number of sound range in the sequence 
+        size {Tuple[int, int]} -- number of sound range in the sequence 
         scale {Tuple[float, float]} -- volume factor scale range
         duration {float} -- sequence duration in seconds
         sr {int} -- sample rate
@@ -84,7 +84,7 @@ class Sequencer:
         self: "Sequencer",
         name: str,
         directory: str,
-        size: Tuple[float, float],
+        size: Tuple[int, int],
         scale: Tuple[float, float],
         duration: float = 4,
         sr: int = 16000,
@@ -94,7 +94,7 @@ class Sequencer:
         Arguments:
             name {str} -- sequencer label
             directory {str} -- path to the directory containing the audios
-            size {Tuple[float, float]} -- number of sound range in the sequence 
+            size {Tuple[int, int]} -- number of sound range in the sequence 
             scale {Tuple[float, float]} -- volume factor scale range
         
         Keyword Arguments:
@@ -164,7 +164,7 @@ class Ambient:
     Attributes:
         name {str} -- sequencer label
         directory {str} -- path to the directory containing the audios
-        size {Tuple[float, float]} -- number of sound range in the sequence 
+        size {Tuple[int, int]} -- number of sound range in the sequence 
         scale {Tuple[float, float]} -- volume factor scale range
         duration {float} -- sequence duration in seconds
         sr {int} -- sample rate
@@ -175,8 +175,8 @@ class Ambient:
         self: "Ambient",
         name: str,
         directory: str,
-        size: Tuple[float],
-        scale: Tuple[float],
+        size: Tuple[int, int],
+        scale: Tuple[float, float],
         duration: float = 4,
         sr: int = 16000,
     ) -> None:
@@ -185,7 +185,7 @@ class Ambient:
         Arguments:
             name {str} -- sequencer label
             directory {str} -- path to the directory containing the audios
-            size {Tuple[float, float]} -- number of sound range in the sequence 
+            size {Tuple[int, int]} -- number of sound range in the sequence 
             scale {Tuple[float, float]} -- volume factor scale range
         
         Keyword Arguments:
@@ -256,9 +256,9 @@ class Composer:
     Attributes:
         label_directory {str} -- path to the sequencer audio directories
         ambient_directory {str} -- path to the ambients directories
-        label_size {Tuple[float, float]} -- number of sound range in the 
+        label_size {Tuple[int, int]} -- number of sound range in the 
             sequence
-        ambient_size {Tuple[float, float]} -- number of sound range in the 
+        ambient_size {Tuple[int, int]} -- number of sound range in the 
             ambient
         label_scale {Tuple[float, float]} -- volume factor scale range
         ambient_scale {Tuple[float, float]} -- volume factor scale range
@@ -274,22 +274,22 @@ class Composer:
         self: "Composer",
         label_directory: str,
         ambient_directory: str,
-        label_size: Tuple[float, float],
-        ambient_size: Tuple[float, float],
+        label_size: Tuple[int, int],
+        ambient_size: Tuple[int, int],
         label_scale: Tuple[float, float],
         ambient_scale: Tuple[float, float],
         duration: float = 4,
         sr: int = 16000,
         snr: Tuple[float, float] = (0, 100),
     ) -> None:
-        """[summary]
+        """Initialization
         
         Arguments:
             label_directory {str} -- path to the sequencer audio directories
             ambient_directory {str} -- path to the ambients directories
-            label_size {Tuple[float, float]} -- number of sound range in the 
+            label_size {Tuple[int, int]} -- number of sound range in the 
                 sequence
-            ambient_size {Tuple[float, float]} -- number of sound range in the 
+            ambient_size {Tuple[int, int]} -- number of sound range in the 
                 ambient
             label_scale {Tuple[float, float]} -- volume factor scale range
             ambient_scale {Tuple[float, float]} -- volume factor scale range
