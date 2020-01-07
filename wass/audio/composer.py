@@ -115,7 +115,9 @@ class Sequencer:
         self.sr = sr
 
         self.files = [
-            os.path.join(directory, file) for file in os.listdir(directory)
+            os.path.join(directory, file)
+            for file in sorted(os.listdir(directory))
+            if file.endswith(".wav")
         ]
 
     def __iter__(self: "Sequencer") -> "Sequencer":
@@ -178,7 +180,7 @@ class Ambient:
         duration: float = 4,
         sr: int = 16000,
     ) -> None:
-         """Initialization
+        """Initialization
         
         Arguments:
             name {str} -- sequencer label
@@ -204,7 +206,9 @@ class Ambient:
         self.sr = sr
 
         self.files = [
-            os.path.join(directory, file) for file in os.listdir(directory)
+            os.path.join(directory, file)
+            for file in sorted(os.listdir(directory))
+            if file.endswith(".wav")
         ]
 
     def __iter__(self: "Ambient") -> "Ambient":
@@ -295,7 +299,7 @@ class Composer:
             sr {int} -- sample rate (default: {16000})
             snr {Tuple[float, float]} -- signal to noise ratio range for ADWGN 
                 (default: {(0, 54)})
-        """        
+        """
         self.label_directory = label_directory
         self.ambient_directory = ambient_directory
         self.label_size = label_size
@@ -317,7 +321,7 @@ class Composer:
                 duration,
                 sr,
             )
-            for label in os.listdir(label_directory)
+            for label in sorted(os.listdir(label_directory))
             if os.path.isdir(os.path.join(label_directory, label))
         }
 
@@ -330,7 +334,7 @@ class Composer:
                 duration,
                 sr,
             )
-            for label in os.listdir(ambient_directory)
+            for label in sorted(os.listdir(ambient_directory))
             if os.path.isdir(os.path.join(ambient_directory, label))
         }
 
@@ -349,13 +353,18 @@ class Composer:
             Tuple[torch.Tensor, torch.Tensor] -- next composition and sequences
         """
         sequences = torch.cat(
-            [next(sequencer) for sequencer in self.sequencers.values()]
+            [
+                next(self.sequencers[key])
+                for key in sorted(self.sequencers.keys())
+            ]
         )
         composition = sequences.mean(dim=0, keepdim=True)
 
         ambient = torch.cat(
-            [next(ambient) for ambient in self.ambients.values()]
-        ).mean(dim=0, keepdim=True)
+            [next(self.ambients[key]) for key in sorted(self.ambients.keys())]
+        )
+        ambient = ambient.mean(dim=0, keepdim=True)
+
         composition += ambient
         composition = self.noise(composition)
 
