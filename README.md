@@ -12,7 +12,7 @@ The repository is currently under **development**.
 
 ### Dataset
 
-The Dataset is a simple class inheriting from `torch.util.data.Dataset`. It provide basic access to its length and item through a pytonic API. The class also provides direct ways to generate the dataset, either from a configuration file *(see Configuration section)* or from default values *(see code)*.
+The Dataset is a simple class inheriting from `torch.util.data.Dataset`. It provides basic access to its length and items through a pytonic API. The class also provides direct ways to generate the dataset, either from a configuration file *(see Configuration section)* or from default values *(see code)*.
 
 ```python
 from wass.dataset import CompositionDataset
@@ -37,7 +37,7 @@ composition, sequences = train_dataset[0]
 
 #### Data
 
-The Dataset is generated out of bird and abmient samples. Those sample are 
+The Dataset is generated out of bird and abmient samples. Those samples are 
 available in the data folder and contains 10 bird species:
 
 ```
