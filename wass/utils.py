@@ -13,7 +13,7 @@ class TrainingHistory:
         
     Attributes:
         path {str} -- path where to save the experiment
-        exp_name {str} -- experience name (will be folder name within path)
+        exp_name {str} -- experiment name (will be folder name within path)
         data {Dict[str, List[float]]} -- data from experiment
         dir {str} -- path to experiment directory
     """
@@ -46,6 +46,14 @@ class TrainingHistory:
         self.dir = os.path.join(path, exp_name)
         if not os.path.isdir(self.dir):
             os.makedirs(self.dir, exist_ok=True)
+
+    def __len__(self: "TrainingHistory") -> int:
+    """Length
+
+    Returns:
+        int -- number of epoch passed
+    """        
+    return len(self.data)
 
     def __iadd__(
         self: "TrainingHistory", datum: Tuple[float, float]
