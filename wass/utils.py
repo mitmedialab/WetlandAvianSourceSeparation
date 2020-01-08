@@ -48,12 +48,12 @@ class TrainingHistory:
             os.makedirs(self.dir, exist_ok=True)
 
     def __len__(self: "TrainingHistory") -> int:
-    """Length
+        """Length
 
-    Returns:
-        int -- number of epoch passed
-    """        
-    return len(self.data)
+        Returns:
+            int -- number of epoch passed
+        """
+        return len(self.data)
 
     def __iadd__(
         self: "TrainingHistory", datum: Tuple[float, float]

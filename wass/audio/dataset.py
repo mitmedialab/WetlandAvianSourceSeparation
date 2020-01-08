@@ -38,6 +38,8 @@ class ComposerConfig:
         noise {AdditiveWhiteGaussianNoise} -- additive white gaussian noise
         sequencers {List[Sequencer]} -- sequencers
         ambients {List[Sequencer]} -- ambient generators
+
+    Properties:
         n_label {int} -- number of labels/sources
     """
 
@@ -82,7 +84,15 @@ class ComposerConfig:
         self.duration = duration
         self.sr = sr
         self.snr = snr
-        self.n_label = len(
+
+    @property
+    def n_label(self: "ComposerConfig") -> int:
+        """Number of Labels/Sources
+        
+        Returns:
+            int -- number of labels/sources
+        """
+        n_label = len(
             list(
                 filter(
                     lambda dir: os.path.isdir(dir),
@@ -90,6 +100,8 @@ class ComposerConfig:
                 )
             )
         )
+
+        return n_label
 
     def save(self: "ComposerConfig", path: str) -> None:
         """Save to YAML

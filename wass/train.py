@@ -172,15 +172,27 @@ class Solver:
         self.composer_config = ComposerConfig.load(
             self.train_config.composer_conf_path
         )
-        self.train_dataset = CompositionDataset.generate_from_config(
-            os.path.join(self.exp_dir, "dataset/train"),
-            self.composer_config,
-            size=self.train_config.n_train,
+
+        train_folder = os.path.join(self.exp_dir, "dataset/train")
+        test_folder = os.path.join(self.exp_dir, "dataset/test")
+
+        self.train_dataset = (
+            CompositionDataset.generate_from_config(
+                train_folder,
+                self.composer_config,
+                size=self.train_config.n_train,
+            )
+            if not os.path.isdir(train_folder)
+            else CompositionDataset(train_folder)
         )
-        self.test_dataset = CompositionDataset.generate_from_config(
-            os.path.join(self.exp_dir, "dataset/test"),
-            self.composer_config,
-            size=self.train_config.n_test,
+        self.test_dataset = (
+            CompositionDataset.generate_from_config(
+                test_folder,
+                self.composer_config,
+                size=self.train_config.n_test,
+            )
+            if not os.path.isdir(test_folder)
+            else CompositionDataset(test_folder)
         )
 
     def _init_dataloaders(self: "Solver") -> None:
