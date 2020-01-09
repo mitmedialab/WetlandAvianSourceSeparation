@@ -269,6 +269,7 @@ class Solver:
         Perform training starting from last epoch and save progress if needed.
         """
         start_epoch = len(self.history)
+        epochs = self.train_config.epochs
         pbar = tqdm(range(start_epoch, epochs), desc="Epoch")
         for epoch in pbar:
             tr_loss = self._train()
@@ -280,6 +281,8 @@ class Solver:
             save = ((epoch + 1) % self.train_config.saving_rate) == 0
             if save:
                 self._save()
+
+        self._save()
 
     def _train(self: "Solver") -> float:
         """Perform Training on One Epoch
@@ -306,7 +309,7 @@ class Solver:
             )
             self.optim.step()
 
-            tr_loss += loss.item()
+            tr_loss += loss.detach().cpu().item()
         tr_loss /= len(self.train_loader)
 
         return tr_loss
@@ -328,7 +331,7 @@ class Solver:
             predictions = self.model(composition)
             loss = self.criterion
 
-            cv_loss += loss.item()
+            cv_loss += loss.detach().cpu().item()
         cv_loss /= len(self.test_loader)
 
         return cv_loss
