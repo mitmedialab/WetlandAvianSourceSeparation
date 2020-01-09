@@ -12,7 +12,7 @@ The repository is currently under **development**.
 
 ### Dataset
 
-The Dataset is a simple class inheriting from `torch.util.data.Dataset`. It provides basic access to its length and items through a pytonic API. The class also provides direct ways to generate the dataset, either from a configuration file *(see Configuration section)* or from default values *(see code)*.
+The Dataset is a simple class inheriting from `torch.util.data.Dataset`. It provides access to its length and items through a pythonic API. The class also offers ways to generate the Dataset, either from a configuration file *(see Configuration section)* or from default values *(see code)*.
 
 ```python
 from wass.dataset import CompositionDataset
@@ -37,8 +37,8 @@ composition, sequences = train_dataset[0]
 
 #### Data
 
-The Dataset is generated out of bird and abmient samples. Those samples are 
-available in the data folder and contains 10 bird species:
+The Dataset is generated out of birds and ambient samples. Those samples are 
+available in the data folder and contains ten bird species:
 
 ```
 data/
@@ -61,7 +61,7 @@ data/
 
 #### Configuration
 
-The generated compositions can be controlled with various parameters through a confirguration file saved as a `.yaml` file.
+The generated compositions can be controlled with various parameters through a configuration file saved as a `.yaml` file.
 
 ```python
 from wass.audio.dataset import ComposerConfig
@@ -84,6 +84,20 @@ config.save("path.yaml")
 
 # Retrieve from file
 config = ComposerConfig.load("path.yaml)
+```
+
+Composer configuration files are provided in the `config/composer` folder. Here is an example of the default configuration file `default.yaml`:
+
+```yaml
+label_directory: data/birds
+ambient_directory: data/ambient
+label_size: !!python/tuple [0, 8]
+ambient_size: !!python/tuple [0, 2]
+label_scale: !!python/tuple [0.5, 1.5]
+ambient_scale: !!python/tuple [0.4, 1.4]
+duration: 4
+sr: 16000
+snr: !!python/tuple [0, 100]
 ```
 
 ### Training
@@ -113,10 +127,10 @@ config = ComposerConfig.load("path.yaml)
 
 ## Authors
 
-- [Felix]
-- [Yliess]
-- [Clement]
+- [Felix MICHAUD]
+- [Yliess HATI]
+- [Clement DUHART]
 
-[Felix]: https://github.com/FelixMichaud
-[Yliess]: https://github.com/yliess86
-[Clement]: https://github.com/slash6475
+[Felix MICHAUD]: https://github.com/FelixMichaud
+[Yliess HATI]: https://github.com/yliess86
+[Clement DUHART]: https://github.com/slash6475
