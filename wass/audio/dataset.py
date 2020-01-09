@@ -95,7 +95,9 @@ class ComposerConfig:
         n_label = len(
             list(
                 filter(
-                    lambda dir: os.path.isdir(dir),
+                    lambda dir: os.path.isdir(
+                        os.path.join(self.label_directory, dir)
+                    ),
                     os.listdir(self.label_directory),
                 )
             )

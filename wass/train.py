@@ -242,7 +242,9 @@ class Solver:
         
         Initialize optimizer and load its weights when checkpoint is available.
         """
-        self.optim = Adam(self.model.parameters(), lr=self.train_config.lr)
+        self.optim = Adam(
+            self.model.parameters(), lr=float(self.train_config.lr)
+        )
         if os.path.isfile(self.model_path):
             package = torch.load(self.model_path)
             self.optim.load_state_dict(package["state"]["optim_dict"])
@@ -266,7 +268,7 @@ class Solver:
 
         Perform training starting from last epoch and save progress if needed.
         """
-        start_epoch = len(self.history.data)
+        start_epoch = len(self.history)
         pbar = tqdm(range(start_epoch, epochs), desc="Epoch")
         for epoch in pbar:
             tr_loss = self._train()

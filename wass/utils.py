@@ -53,7 +53,7 @@ class TrainingHistory:
         Returns:
             int -- number of epoch passed
         """
-        return len(self.data)
+        return len(self.data["training_loss"])
 
     def __iadd__(
         self: "TrainingHistory", datum: Tuple[float, float]
