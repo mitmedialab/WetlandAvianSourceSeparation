@@ -59,7 +59,7 @@ class AdditiveWhiteGaussianNoise(nn.Module):
         noise_power = signal_power / ((regsnr / 10) ** 10)
 
         noise = np.sqrt(noise_power) * (np.random.uniform(-1, 1, size=length))
-        X += torch.from_numpy(noise).unsqueeze(0)
+        X += torch.from_numpy(noise.astype(np.float32)).unsqueeze(0)
 
         return X
 
@@ -134,7 +134,7 @@ class Sequencer:
         Returns:
             torch.Tensor -- next output tensor
         """
-        duration = self.duration * self.sr
+        duration = int(self.duration * self.sr)
         sequence = torch.zeros((1, duration)).float()
 
         for id in range(np.random.randint(*self.size)):
@@ -225,7 +225,7 @@ class Ambient:
         Returns:
             torch.Tensor -- next output tensor
         """
-        duration = self.duration * self.sr
+        duration = int(self.duration * self.sr)
         sequence = torch.zeros((1, duration)).float()
 
         for id in range(np.random.randint(*self.size)):

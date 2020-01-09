@@ -79,7 +79,7 @@ class TrainingHistory:
         data = "\n".join(
             (
                 ";".join((str(self.data[key][i]) for key in self.data.keys()))
-                for i in range(len(self.data))
+                for i in range(len(self))
             )
         )
 

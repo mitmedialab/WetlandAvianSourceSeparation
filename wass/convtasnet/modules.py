@@ -259,7 +259,7 @@ class Separator(nn.Module):
                         causal=causal,
                     )
                 )
-                self.receptive_field += (
+                self.receptive_field = self.receptive_field + (
                     kernel
                     if layer_id == 0 and s == 0
                     else (kernel - 1) * dilation
@@ -281,8 +281,8 @@ class Separator(nn.Module):
         skip_connection = 0.0
         for module in self.TCN:
             residual, skip = module(X)
-            X += residual
-            skip_connection += skip
+            X = X + residual
+            skip_connection = skip_connection + skip
         X = self.out(skip_connection)
 
         return X

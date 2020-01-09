@@ -14,8 +14,8 @@ import torch
 import torch.nn as nn
 
 from wass.audio.dataset import CompositionDataset, ComposerConfig
-from wass.convtasnet.loss import SI_SNR_Criterion
 from wass.convtasnet.model import Conv_TasNet
+from wass.convtasnet.loss import SI_SNR
 from torch.utils.data import DataLoader
 from wass.utils import TrainingHistory
 from torch.optim import Adam
@@ -129,7 +129,7 @@ class Solver:
         test_loader {DataLoader} -- testing data loader
         model_path {str} -- path to model checkpoint
         model {Conv_TasNet} -- model to be trained
-        criterion {SI_SNR_Criterion} -- criterion to define objective function
+        criterion {SI_SNR} -- criterion to define objective function
         optim {Adam} -- adam optimize to train the model
         history_path {str} -- path to history data (progress loss data)
         history {TrainingHistory} -- training history (store loss progress)
@@ -233,7 +233,7 @@ class Solver:
     def _init_criterion(self: "Solver") -> None:
         """Initialize Criterion
         """
-        self.criterion = SI_SNR_Criterion()
+        self.criterion = SI_SNR()
         if self.cuda:
             self.criterion = self.criterion.cuda()
 
@@ -292,16 +292,16 @@ class Solver:
         """
         self.model.train()
         tr_loss = 0.0
-        for batch in self.train_loader:
+        for batch in tqdm(self.train_loader, desc="Train Batch"):
             self.optim.zero_grad()
 
-            composition, sequences = batch
+            mixture, source = batch
             if self.cuda:
-                composition = composition.cuda()
-                sequences = sequences.cuda()
+                mixture = mixture.cuda()
+                source = source.cuda()
 
-            predictions = self.model(composition)
-            loss = self.criterion(predictions, sequences)
+            estimate = self.model(mixture)
+            loss = self.criterion(estimate, source)
 
             loss.backward()
             nn.utils.clip_grad_norm_(
@@ -309,7 +309,7 @@ class Solver:
             )
             self.optim.step()
 
-            tr_loss += loss.detach().cpu().item()
+            tr_loss += loss.item()
         tr_loss /= len(self.train_loader)
 
         return tr_loss
@@ -322,16 +322,16 @@ class Solver:
         """
         self.model.eval()
         cv_loss = 0.0
-        for batch in self.test_loader:
-            composition, sequences = batch
+        for batch in tqdm(self.test_loader, desc="Test Batch"):
+            mixture, source = batch
             if self.cuda:
-                composition = composition.cuda()
-                sequences = sequences.cuda()
+                mixture = mixture.cuda()
+                source = source.cuda()
 
-            predictions = self.model(composition)
-            loss = self.criterion
+            estimate = self.model(mixture)
+            loss = self.criterion(estimate, source)
 
-            cv_loss += loss.detach().cpu().item()
+            cv_loss += loss.item()
         cv_loss /= len(self.test_loader)
 
         return cv_loss
@@ -342,4 +342,32 @@ class Solver:
         Saves history of losses and model state (checkpoint).
         """
         self.history.save()
-        torch.save(self.model.serialize(), self.model_path)
+        torch.save(
+            Conv_TasNet.serialize(self.model, self.optim), self.model_path
+        )
+
+
+if __name__ == "__main__":
+    B, C, S = 2, 3, 12
+    print(f"B: {B}, C: {C}, S: {S}")
+
+    model = Conv_TasNet(n_sources=C)
+    optim = Adam(model.parameters())
+    print("model and optim initialized")
+
+    source = torch.randint(4, (B, C, S)).float()
+    mixture = torch.sum(source, dim=1, keepdim=True)
+    print(f"source: {tuple(source.shape)}")
+    print(f"mixture: {tuple(mixture.shape)}")
+
+    estimate = model(mixture)
+    print(f"estimate: {tuple(estimate.shape)}")
+
+    loss = SI_SNR()(estimate, source)
+    print(f"criterion: {loss.item()}")
+
+    optim.zero_grad()
+    loss.backward()
+    optim.step()
+    print("backward pass and optim step success")
+

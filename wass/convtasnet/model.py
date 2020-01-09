@@ -112,7 +112,7 @@ class Conv_TasNet(nn.Module):
             raise RuntimeError("Input must contain either 2 ou 3 dimensions.")
 
         if X.dim() == 2:
-            X = X.unsqueeze(1)
+            X = torch.unsqueeze(X, dim=1)
 
         B, _, S = X.size()
         _type = X.type()
@@ -146,7 +146,7 @@ class Conv_TasNet(nn.Module):
         masks = torch.sigmoid(self.separator(mixture)).view(
             B, self.n_sources, self.encoder_dim, -1
         )
-        mixture = mixture.unsqueeze(1) * masks
+        mixture = torch.unsqueeze(mixture, dim=1) * masks
 
         ss = self.decoder(
             mixture.view(B * self.n_sources, self.encoder_dim, -1)
@@ -158,22 +158,13 @@ class Conv_TasNet(nn.Module):
 
     @staticmethod
     def serialize(
-        model: "Conv_TasNet",
-        optimizer: Optimizer,
-        epoch: int,
-        tr_loss: float = None,
-        cv_loss: float = None,
+        model: "Conv_TasNet", optimizer: Optimizer
     ) -> Dict[str, Any]:
         """Serialize Model to be Saved
         
         Arguments:
             model {Conv_TasNet} -- model to be serialized
             optimizer {Optimizer} -- optimizer to be serialized
-            epoch {int} -- current epoch
-        
-        Keyword Arguments:
-            tr_loss {float} -- train loss (default: {None})
-            cv_loss {float} -- validation loss (default: {None})
         
         Returns:
             Dict[str, Any] -- package containing the training infos
@@ -188,11 +179,8 @@ class Conv_TasNet(nn.Module):
                     - n_sources
                     - causal
                 state:
-                    - epoch
                     - state_dict
                     - optim_dict
-                    - tr_loss
-                    - cv_loss
         """
         config = {
             "encoder_dim": model.encoder_dim,
@@ -207,13 +195,9 @@ class Conv_TasNet(nn.Module):
         }
 
         state = {
-            "epoch": epoch,
             "state_dict": model.state_dict(),
             "optim_dict": optimizer.state_dict(),
         }
-        if tr_loss is not None:
-            state["tr_loss"] = tr_loss
-            state["cv_loss"] = cv_loss
 
         package = {"config": config, "state": state}
 
@@ -234,3 +218,14 @@ class Conv_TasNet(nn.Module):
         model.load_state_dict(package["state"]["state_dict"])
 
         return model
+
+
+if __name__ == "__main__":
+    B, C, S = 2, 3, 12
+    print(f"B: {B}, C: {C}, S: {S}")
+
+    mixture = torch.randint(4, (B, 1, S)).float()
+    print(f"mixture: {tuple(mixture.shape)}")
+
+    estimate = Conv_TasNet(n_sources=C)(mixture)
+    print(f"estimate: {tuple(estimate.shape)}")

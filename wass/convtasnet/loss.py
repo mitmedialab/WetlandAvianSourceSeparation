@@ -1,14 +1,13 @@
 """loss.py
 
 Th file contains an implementation of the Conv-TasNet Scale Invariant Signal to
-Noise Ratio loss described in the TasNet paper 
+Noise Ratio loss with PIT Training described in the TasNet paper 
 (https://arxiv.org/pdf/1809.07454.pdf). The chosen loss (SI SNR) originates 
 from the following paper:
     - https://arxiv.org/pdf/1811.02508.pdf
 
-Code is heavily inspired by the original implementation from the paper's 
-authors:
-    - https://github.com/naplab/Conv-TasNet
+Code is heavily inspired by Kaituoxu implementation of the paper:
+    - https://github.com/kaituoxu/Conv-TasNet/blob/master/src/pit_criterion.py
 """
 import torch
 import torch.nn as nn
@@ -16,177 +15,84 @@ import torch.nn as nn
 from itertools import permutations
 
 
-class SI_SNR_OneAudio(nn.Module):
-    """Scale Invariant Signal to Noise Ratio for One Audio
-
-    SI SNR originate from:
-        - https://arxiv.org/pdf/1811.02508.pdf
-
-    The implementation is a straight adaptation from the original Conv-TasNet
-    github repository:
-        - https://github.com/kaituoxu/Conv-TasNet
+class SI_SNR(nn.Module):
+    """Scale Invariant Signal to Noise Ratio with PIT Training
     
+    Adapted from:
+        - https://github.com/kaituoxu/Conv-TasNet
+
     Attributes:
-        eps {float} -- epsilon value to avoid 0 division
+        eps {float} -- epsilon to avoid 0 division
     """
 
-    def __init__(self: "SI_SNR_OneAudio", eps: float = 1e-8) -> None:
+    def __init__(self: "SI_SNR", eps: float = 1e-8) -> None:
         """Initialization
-        
+
         Keyword Arguments:
-            eps {float} -- epsilon value to avoid 0 division (default: {1e-8})
+            eps {float} -- epsilon to avoid 0 division (default: {1e-8})
         """
-        super(SI_SNR_OneAudio, self).__init__()
+        super(SI_SNR, self).__init__()
         self.eps = eps
 
     def forward(
-        self: "SI_SNR_OneAudio",
-        Y_: torch.Tensor,
-        Y: torch.Tensor,
-        mask: torch.Tensor = None,
+        self: "SI_SNR", Y_: torch.Tensor, Y: torch.Tensor
     ) -> torch.Tensor:
         """Forward Pass
+
+        zero-mean prior to calculation:
+            s_target = (<ŝ,s>.s) / ||s||²
+            e_noise = ŝ - s_target
+            si_snr = 10 torch.log10(||s_target||² / ||e_noise||²)
         
         Arguments:
-            Y_ {torch.Tensor} -- estimated input tensor
-            Y {torch.Tensor} -- target input tensor
-        
-        Keyword Arguments:
-            mask {torch.Tensor} -- mask tensor if any (default: {None})
+            Y_ {torch.Tensor} -- estimated source separation input tensor
+            Y {torch.Tensor} -- target source separation input tensor
         
         Returns:
-            torch.Tensor -- si snr of one audio output tensor
+            torch.Tensor -- si snr output loss tensor
         """
-        if mask is not None:
-            Y_ *= mask
-            Y *= mask
+        B, C, S = Y.size()
 
-        origin_power = torch.pow(Y, 2).sum(1, keepdim=True) + self.eps
-        scale = torch.sum(Y * Y_, 1, keepdim=True) / origin_power
+        mean_estimate = torch.sum(Y_, dim=-1, keepdim=True) / B
+        mean_target = torch.sum(Y, dim=-1, keepdim=True) / B
+        zero_mean_estimate = Y_ - mean_estimate
+        zero_mean_target = Y - mean_target
 
-        scaled_reference = Y * scale
-        scaled_restitution = Y_ - scaled_reference
-
-        power_reference = torch.pow(scaled_reference, 2).sum(1)
-        power_restitution = torch.pow(scaled_restitution, 2).sum(1)
-
-        cost = 10 * (
-            torch.log10(power_reference) - torch.log10(power_restitution)
+        s_estimate = torch.unsqueeze(zero_mean_estimate, dim=2)
+        s_target = torch.unsqueeze(zero_mean_target, dim=1)
+        pair_wise_dot = torch.sum(s_estimate * s_target, dim=3, keepdim=True)
+        s_target_energy = torch.sum(s_target ** 2, dim=3, keepdim=True)
+        pair_wise_proj = pair_wise_dot * s_target / s_target_energy
+        e_noise = s_estimate - pair_wise_proj
+        pair_wise_si_snr = torch.sum(pair_wise_proj ** 2, dim=3) / (
+            torch.sum(e_noise ** 2, dim=3) + self.eps
         )
+        pair_wise_si_snr = 10 * torch.log10(pair_wise_si_snr + self.eps)
 
-        return cost
+        perms = Y.new_tensor(list(permutations(range(C)))).long()
+        index = torch.unsqueeze(perms, 2)
+        perms_one_hot = Y.new_zeros((*perms.size(), C)).scatter_(2, index, 1)
+        snr_set = torch.einsum(
+            "bij,pij->bp", [pair_wise_si_snr, perms_one_hot]
+        )
+        max_snr_idx = torch.argmax(snr_set, dim=1)
+        max_snr, _ = torch.max(snr_set, dim=1)
+        max_snr /= C
 
+        loss = 0 - torch.mean(max_snr)
 
-class SI_SNR_MultiAudio(nn.Module):
-    """Scale Invariant Signal to Noise Ratio for Multiple Audios
-
-    SI SNR originate from:
-        - https://arxiv.org/pdf/1811.02508.pdf
-
-    The implementation is a straight adaptation from the original Conv-TasNet
-    github repository:
-        - https://github.com/kaituoxu/Conv-TasNet
-    
-    Attributes:
-        eps {float} -- epsilon value to avoid 0 division
-        si_snr {SI_SNR_OneAudio} -- SI SNR for one audio
-    """
-
-    def __init__(self: "SI_SNR_MultiAudio", eps: float = 1e-8) -> None:
-        """Initialization
-        
-        Keyword Arguments:
-            eps {float} -- epsilon value to avoid 0 division (default: {1e-8})
-        """
-        super(SI_SNR_MultiAudio, self).__init__()
-        self.eps = eps
-        self.si_snr = SI_SNR_OneAudio(eps)
-
-    def forward(
-        self: "SI_SNR_MultiAudio",
-        Y_: torch.Tensor,
-        Y: torch.Tensor,
-        mask: torch.Tensor = None,
-    ) -> torch.Tensor:
-        """Forward Pass
-        
-        Arguments:
-            Y_ {torch.Tensor} -- estimated input tensor
-            Y {torch.Tensor} -- target input tensor
-        
-        Keyword Arguments:
-            mask {torch.Tensor} -- mask tensor if any (default: {None})
-        
-        Returns:
-            torch.Tensor -- si snr of multiple audios output tensor
-        """
-        B, C, _ = Y.size()
-        _type = Y.type()
-
-        Y -= torch.mean(Y, 2, keepdim=True).expand_as(Y)
-        Y_ -= torch.mean(Y_, 2, keepdim=True).expand_as(Y_)
-
-        perms = list(set(permutations(torch.arange(C))))
-        n_perms = len(perms)
-
-        pairwise_SI_SNR = torch.zeros((B, C, C)).type(_type)
-        for i in range(C):
-            for j in range(C):
-                pairwise_SI_SNR[i, j] = self.si_snr(Y_[:, i], Y[:, j], mask)
-
-        _SI_SNR_perms = []
-        for perm in perms:
-            si_snr = [pairwise_SI_SNR[:, p, perm].view(B, -1) for p in n_perms]
-            si_snr = torch.sum(torch.cat(si_snr, 1), 1).view(B, 1)
-            SI_SNR_perms.append(si_snr)
-        SI_SNR_perms = torch.cat(SI_SNR_perms, 1)
-        SI_SNR_max, _ = torch.max(SI_SNR_perms, dim=1)
-
-        SI_SNR = SI_SNR_max / C
-
-        return SI_SNR
+        return loss
 
 
-class SI_SNR_Criterion(nn.Module):
-    """Scale Invariant Signal to Noise Ratio Criterion
+if __name__ == "__main__":
+    B, C, S = 2, 3, 12
+    print(f"B: {B}, C: {C}, S: {S}")
 
-    SI SNR originate from:
-        - https://arxiv.org/pdf/1811.02508.pdf
+    source = torch.randint(4, (B, C, S)).float()
+    estimate = torch.randint(4, (B, C, S)).float()
+    print(f"source: {tuple(source.shape)}")
+    print(f"estimate: {tuple(estimate.shape)}")
 
-    The implementation is a straight adaptation from the original Conv-TasNet
-    github repository:
-        - https://github.com/kaituoxu/Conv-TasNet
-    
-    Attributes:
-        eps {float} -- epsilon value to avoid 0 division
-        si_snr {SI_SNR_OneAudio} -- SI SNR for multiple audios
-    """
+    loss = SI_SNR()(estimate, source).detach().cpu().item()
+    print(f"loss: {loss}")
 
-    def __init__(
-        self: "SI_SNR_Criterion", eps: float = 1e-8
-    ) -> "SI_SNR_Criterion":
-        """Initialization
-           
-        Keyword Arguments:
-            eps {float} -- epsilon value to avoid 0 division (default: {1e-8})
-        """
-        super(SI_SNR_Criterion, self).__init__()
-        self.eps = eps
-        self.si_snr = SI_SNR_MultiAudio(eps)
-
-    def forward(
-        self: "SI_SNR_Criterion", Y_: torch.Tensor, Y: torch.Tensor
-    ) -> torch.Tensor:
-        """Forward Pass
-        
-        Arguments:
-            Y_ {torch.Tensor} -- estimated input tensor
-            Y {torch.Tensor} -- target input tensor
-        
-        Keyword Arguments:
-            mask {torch.Tensor} -- mask tensor if any (default: {None})
-        
-        Returns:
-            torch.Tensor -- negative si snr output loss
-        """
-        return -self.si_snr(Y_, Y)
