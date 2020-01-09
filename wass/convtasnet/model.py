@@ -213,7 +213,7 @@ class Conv_TasNet(nn.Module):
         Returns:
             Conv_Tas -- loaded model
         """
-        package = torch.load(path, map_loacation=lambda stor, loc: stor)
+        package = torch.load(path, map_location=lambda stor, loc: stor)
         model = cls(**package["config"])
         model.load_state_dict(package["state"]["state_dict"])
 

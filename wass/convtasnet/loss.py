@@ -52,6 +52,7 @@ class SI_SNR(nn.Module):
             torch.Tensor -- si snr output loss tensor
         """
         B, C, S = Y.size()
+        print("Checking NaN", "Y", torch.isnan(Y), "Y_", torch.isnan(Y_))
 
         mean_estimate = torch.sum(Y_, dim=-1, keepdim=True) / B
         mean_target = torch.sum(Y, dim=-1, keepdim=True) / B
