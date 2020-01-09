@@ -52,19 +52,21 @@ class SI_SNR(nn.Module):
             torch.Tensor -- si snr output loss tensor
         """
         B, C, S = Y.size()
-        print("Checking NaN", "Y", torch.isnan(Y), "Y_", torch.isnan(Y_))
 
-        mean_estimate = torch.sum(Y_, dim=-1, keepdim=True) / B
-        mean_target = torch.sum(Y, dim=-1, keepdim=True) / B
-        zero_mean_estimate = Y_ - mean_estimate
-        zero_mean_target = Y - mean_target
+        zero_mean_target = Y - torch.mean(Y, dim=-1, keepdim=True)
+        zero_mean_estimate = Y_ - torch.mean(Y_, dim=-1, keepdim=True)
 
-        s_estimate = torch.unsqueeze(zero_mean_estimate, dim=2)
         s_target = torch.unsqueeze(zero_mean_target, dim=1)
+        s_estimate = torch.unsqueeze(zero_mean_estimate, dim=2)
+
         pair_wise_dot = torch.sum(s_estimate * s_target, dim=3, keepdim=True)
-        s_target_energy = torch.sum(s_target ** 2, dim=3, keepdim=True)
+        s_target_energy = (
+            torch.sum(s_target ** 2, dim=3, keepdim=True) + self.eps
+        )
         pair_wise_proj = pair_wise_dot * s_target / s_target_energy
+
         e_noise = s_estimate - pair_wise_proj
+
         pair_wise_si_snr = torch.sum(pair_wise_proj ** 2, dim=3) / (
             torch.sum(e_noise ** 2, dim=3) + self.eps
         )
@@ -76,6 +78,7 @@ class SI_SNR(nn.Module):
         snr_set = torch.einsum(
             "bij,pij->bp", [pair_wise_si_snr, perms_one_hot]
         )
+
         max_snr_idx = torch.argmax(snr_set, dim=1)
         max_snr, _ = torch.max(snr_set, dim=1)
         max_snr /= C
