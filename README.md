@@ -4,11 +4,32 @@ The repository is currently under **development**.
 
 ## Install
 
-*Install directives.*
+To install all the necessary dependencies for this repository install all the python libraries using the `pip` command *(may require the use of sudo)*:
+```bash
+pip3 install -r requirements.txt
+```
 
 ## Usage
 
-*Usage directives.*
+```
+usage: wass [-h] [-t] [-c CONFIG] [-g GPU]
+
+Wetland Avian Source Separation (WASS) -- Scripts
+	Source Code:
+		https://github.com/mitmedialab/WetlandAvianSourceSeparation
+	Authors:
+		https://github.com/FelixMichaud
+		https://github.com/yliess86
+		https://github.com/slash6475
+    
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -t, --train           training procedure
+  -c CONFIG, --config CONFIG
+                        training configuration file path
+  -g GPU, --gpu GPU     activate cuda gpu acceleration
+```
 
 ### Dataset
 
