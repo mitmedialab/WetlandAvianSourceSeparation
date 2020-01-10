@@ -242,4 +242,3 @@ GitHub.sublime-settings
 
 # Ignore results folder and test file
 /results
-test.py

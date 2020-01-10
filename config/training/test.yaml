@@ -2,7 +2,7 @@ epochs: 1
 lr: 1e-3
 max_norm: 5
 batch_size: 1
-n_workers: 1
+n_workers: 0
 n_train: 8
 n_test: 2
 composer_conf_path: config/composer/test.yaml

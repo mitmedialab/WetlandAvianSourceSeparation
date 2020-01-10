@@ -92,6 +92,17 @@ class TrainingConfig:
         with open(path, "w") as f:
             yaml.dump(self.__dict__, f)
 
+    def __str__(self: "TrainingConfig") -> str:
+        """Stringify
+        
+        Returns:
+            str -- stringified attribute list
+        """
+        msg = f"{self.__class__.__name__}:\n\t"
+        msg += f"\n\t".join(f"{k}: {v}" for k, v in self.__dict__.items())
+
+        return msg
+
     @classmethod
     def load(cls: "TrainingConfig", path: str) -> "TrainingConfig":
         """Load from YAML
