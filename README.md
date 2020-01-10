@@ -11,6 +11,11 @@ pip3 install -r requirements.txt
 
 ## Usage
 
+Scripts must be used with the following command:
+```bash
+python3 -m wass [-h] [-t] [-c CONFIG] [-g GPU]
+```
+
 ```
 usage: wass [-h] [-t] [-c CONFIG] [-g GPU]
 
