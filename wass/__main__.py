@@ -43,7 +43,7 @@ if args.train:
     if args.config is None:
         parser.error("--train requires --config to be provided.")
 
-    config = TrainingConfig.load("config/training/default.yaml")
+    config = TrainingConfig.load(args.config)
     print(config, "\n")
 
     solver = Solver(config, cuda=args.gpu)
