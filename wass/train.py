@@ -281,7 +281,9 @@ class Solver:
         """
         start_epoch = len(self.history)
         epochs = self.train_config.epochs
-        pbar = tqdm(range(start_epoch, epochs), desc="Epoch")
+        pbar = tqdm(
+            range(start_epoch, epochs), desc="Epoch", position=0, leave=True
+        )
         for epoch in pbar:
             tr_loss = self._train()
             cv_loss = self._test()
@@ -323,7 +325,9 @@ class Solver:
         """
         self.model.train()
         tr_loss = 0.0
-        pbar = tqdm(self.train_loader, desc="Train Batch")
+        pbar = tqdm(
+            self.train_loader, desc="Train Batch", position=0, leave=True
+        )
         for b, batch in enumerate(pbar):
             mixture, source = batch
             if self.cuda:
@@ -355,7 +359,9 @@ class Solver:
         """
         self.model.eval()
         cv_loss = 0.0
-        pbar = tqdm(self.test_loader, desc="Test Batch")
+        pbar = tqdm(
+            self.test_loader, desc="Test Batch", position=0, leave=True
+        )
         for b, batch in enumerate(pbar):
             mixture, source = batch
             if self.cuda:
