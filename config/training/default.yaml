@@ -1,10 +1,10 @@
 epochs: 100
 lr: 1e-3
 max_norm: 5
-batch_size: 8
-n_workers: 2
-n_train: 200
-n_test: 40
+batch_size: 4
+n_workers: 4
+n_train: 2000
+n_test: 400
 composer_conf_path: config/composer/default.yaml
 saving_path: results
 exp_name: default

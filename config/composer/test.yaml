@@ -5,5 +5,5 @@ ambient_size: !!python/tuple [0, 2]
 label_scale: !!python/tuple [0.5, 1.5]
 ambient_scale: !!python/tuple [0.4, 1.4]
 duration: 0.15
-sr: 16000
+sr: 8000
 snr: !!python/tuple [0, 100]

@@ -303,9 +303,8 @@ class Solver:
         """
         self.model.train()
         tr_loss = 0.0
-        for batch in tqdm(self.train_loader, desc="Train Batch"):
-            self.optim.zero_grad()
-
+        pbar = tqdm(self.train_loader, desc="Train Batch")
+        for b, batch in enumerate(pbar):
             mixture, source = batch
             if self.cuda:
                 mixture = mixture.cuda()
@@ -314,6 +313,7 @@ class Solver:
             estimate = self.model(mixture)
             loss = self.criterion(estimate, source)
 
+            self.optim.zero_grad()
             loss.backward()
             nn.utils.clip_grad_norm_(
                 self.model.parameters(), self.train_config.max_norm
@@ -321,6 +321,8 @@ class Solver:
             self.optim.step()
 
             tr_loss += loss.item()
+            pbar.set_postfix(tr_loss=tr_loss / (b + 1))
+
         tr_loss /= len(self.train_loader)
 
         return tr_loss
@@ -333,7 +335,8 @@ class Solver:
         """
         self.model.eval()
         cv_loss = 0.0
-        for batch in tqdm(self.test_loader, desc="Test Batch"):
+        tqdm(self.test_loader, desc="Test Batch")
+        for b, batch in enumerate(pbar):
             mixture, source = batch
             if self.cuda:
                 mixture = mixture.cuda()
@@ -343,6 +346,8 @@ class Solver:
             loss = self.criterion(estimate, source)
 
             cv_loss += loss.item()
+            pbar.set_postfix(cv_loss=cv_loss / (b + 1))
+
         cv_loss /= len(self.test_loader)
 
         return cv_loss
