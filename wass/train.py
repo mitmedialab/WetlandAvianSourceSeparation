@@ -281,10 +281,9 @@ class Solver:
         """
         start_epoch = len(self.history)
         epochs = self.train_config.epochs
-        pbar = tqdm(
-            range(start_epoch, epochs), desc="Epoch", position=0, leave=True
-        )
-        for epoch in pbar:
+        for epoch in range(start_epoch, epochs):
+            print(f"Epoch [{epoch+1}/{epochs}]")
+
             tr_loss = self._train()
             cv_loss = self._test()
 
@@ -292,10 +291,10 @@ class Solver:
             cv_tendency = self._tendency(cv_loss, "validation_loss")
 
             self.history += (tr_loss, cv_loss)
-            pbar.set_postfix(
-                tr_loss=f"{tr_loss} {tr_tendency}",
-                cv_loss=f"{cv_loss} {cv_tendency}",
-            )
+            infos = f"Epoch [{epoch+1}/{epochs}]:\n"
+            infos += f"\ttr_loss: {tr_loss} {tr_tendency}\n"
+            infos += f"\tcv_loss: {cv_loss} {cv_tendency}\n"
+            print(infos)
 
             save = ((epoch + 1) % self.train_config.saving_rate) == 0
             if save:
