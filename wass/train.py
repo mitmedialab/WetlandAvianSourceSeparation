@@ -286,8 +286,27 @@ class Solver:
             tr_loss = self._train()
             cv_loss = self._test()
 
+            tr_tendency = (
+                "-"
+                if len(self.history) > 0
+                or tr_loss == self.history.data["training_loss"][-1]
+                else "↘"
+                if tr_loss < self.history.data["training_loss"][-1]
+                else "↗"
+            )
+            cv_tendency = (
+                "-"
+                if len(self.history) > 0
+                or cv_loss == self.history.data["validation_loss"][-1]
+                else "↘"
+                if cv_loss < self.history.data["validation_loss"][-1]
+                else "↗"
+            )
+
             self.history += (tr_loss, cv_loss)
-            pbar.set_postfix(tr_loss=tr_loss, cv_loss=cv_loss)
+            pbar.set_postfix(
+                tr_loss=tr_loss + tr_tendency, cv_loss=cv_loss + cv_tendency
+            )
 
             save = ((epoch + 1) % self.train_config.saving_rate) == 0
             if save:
@@ -335,7 +354,7 @@ class Solver:
         """
         self.model.eval()
         cv_loss = 0.0
-        tqdm(self.test_loader, desc="Test Batch")
+        pbar = tqdm(self.test_loader, desc="Test Batch")
         for b, batch in enumerate(pbar):
             mixture, source = batch
             if self.cuda:
