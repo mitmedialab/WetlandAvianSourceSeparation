@@ -304,22 +304,22 @@ class Solver:
         self._save()
 
     def _tendency(self: "Solver", loss: float, data: str) -> str:
-    """Get Loss Tendency String
-    
-    Arguments:
-        loss {float} -- current loss
-        data {str} -- name for the loss in history to compare with
-    
-    Returns:
-        str -- tendency "-" or "↘" or "↗"
-    """        
-    if len(self.history) == 0:
-        return "-"
+        """Get Loss Tendency String
+        
+        Arguments:
+            loss {float} -- current loss
+            data {str} -- name for the loss in history to compare with
+        
+        Returns:
+            str -- tendency "-" or "↘" or "↗"
+        """
+        if len(self.history) == 0:
+            return "-"
 
-    last = self.history.data[data][-1]
-    tendency = "↘" if loss < last else "↗" if loss > last else "-"
+        last = self.history.data[data][-1]
+        tendency = "↘" if loss < last else "↗" if loss > last else "-"
 
-    return tendency
+        return tendency
 
     def _train(self: "Solver") -> float:
         """Perform Training on One Epoch
