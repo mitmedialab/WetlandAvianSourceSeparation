@@ -305,7 +305,8 @@ class Solver:
 
             self.history += (tr_loss, cv_loss)
             pbar.set_postfix(
-                tr_loss=tr_loss + tr_tendency, cv_loss=cv_loss + cv_tendency
+                tr_loss=f"{tr_loss} {tr_tendency}",
+                cv_loss=f"{cv_loss} {cv_tendency}",
             )
 
             save = ((epoch + 1) % self.train_config.saving_rate) == 0
