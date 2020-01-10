@@ -30,7 +30,9 @@ parser.add_argument(
     "-t", "--train", help="training procedure", action="store_true"
 )
 parser.add_argument("-c", "--config", help="training configuration file path")
-parser.add_argument("-g", "--gpu", help="activate cuda gpu acceleration")
+parser.add_argument(
+    "-g", "--gpu", help="activate cuda gpu acceleration", action="store_true"
+)
 
 args = parser.parse_args()
 
