@@ -17,7 +17,7 @@ python3 -m wass [-h] [-t] [-c CONFIG] [-g GPU]
 ```
 
 ```
-usage: wass [-h] [-t] [-c CONFIG] [-g]
+usage: wass [-h] [-t] [-c CONFIG] [-g GPU [GPU ...]]
 
 Wetland Avian Source Separation (WASS) -- Scripts
 	Source Code:
@@ -33,7 +33,8 @@ optional arguments:
   -t, --train           training procedure
   -c CONFIG, --config CONFIG
                         training configuration file path
-  -g, --gpu             activate cuda gpu acceleration
+  -g GPU [GPU ...], --gpu GPU [GPU ...]
+                        cuda devices for gpu acceleration
 ```
 
 ### Dataset

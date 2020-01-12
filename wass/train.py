@@ -19,6 +19,7 @@ from wass.convtasnet.loss import SI_SNR
 from torch.utils.data import DataLoader
 from wass.utils import TrainingHistory
 from torch.optim import Adam
+from typing import List
 from tqdm import tqdm
 
 
@@ -131,7 +132,8 @@ class Solver:
     
     Attributes:
         train_config {TrainingConfig} -- training configuration
-        cuda {bool} -- use cuda GPU accelration or not ? (default: {True})
+        cuda {List[int]} -- use cuda GPU accelration or not ? (default: {True})
+        cuda_devices {List[int]} -- cuda device indexes (default: {[0]})
         exp_dir {str} -- experiment reference folder (save & load)
         composer_config {ComposerConfig} -- configuration to generate datasets
         train_dataset {Dataset} -- training dataset
@@ -147,7 +149,10 @@ class Solver:
     """
 
     def __init__(
-        self: "Solver", train_config: "TrainingConfig", cuda: bool = True
+        self: "Solver",
+        train_config: "TrainingConfig",
+        cuda: bool = True,
+        cuda_devices: List[int] = [0],
     ) -> None:
         """Initialize
         
@@ -156,9 +161,11 @@ class Solver:
         
         Keyword Arguments:
             cuda {bool} -- use cuda GPU accelration or not ? (default: {True})
+            cuda_devices {List[int]} -- cuda device indexes (default: {[0]})
         """
         self.train_config = train_config
         self.cuda = cuda
+        self.cuda_devices = cuda_devices
 
         self._init_exp_dir()
         self._init_datasets()
@@ -238,8 +245,14 @@ class Solver:
                 n_sources=self.composer_config.n_label,
             )
         )
+
         if self.cuda:
-            self.model = self.model.cuda()
+            is_one_gpu = len(self.cuda_devices) == 1
+            self.model = (
+                self.model.cuda()
+                if is_one_gpu
+                else nn.DataParallel(self.model, self.cuda_devices)
+            )
 
     def _init_criterion(self: "Solver") -> None:
         """Initialize Criterion

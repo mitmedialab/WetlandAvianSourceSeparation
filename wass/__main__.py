@@ -27,11 +27,17 @@ Wetland Avian Source Separation (WASS) -- Scripts
 )
 
 parser.add_argument(
-    "-t", "--train", help="training procedure", action="store_true"
+    "-t", "--train", action="store_true", help="training procedure"
 )
-parser.add_argument("-c", "--config", help="training configuration file path")
 parser.add_argument(
-    "-g", "--gpu", help="activate cuda gpu acceleration", action="store_true"
+    "-c", "--config", type=str, help="training configuration file path"
+)
+parser.add_argument(
+    "-g",
+    "--gpu",
+    nargs="+",
+    type=int,
+    help="cuda devices for gpu acceleration",
 )
 
 args = parser.parse_args()
@@ -46,7 +52,12 @@ if args.train:
     config = TrainingConfig.load(args.config)
     print(config, "\n")
 
-    solver = Solver(config, cuda=args.gpu)
+    cuda_devices = args.gpu
+    solver = (
+        Solver(config, cuda=False)
+        if not cuda_devices
+        else Solver(config, cuda=True, cuda_devices=cuda_devices)
+    )
     solver()
 
     exit(0)

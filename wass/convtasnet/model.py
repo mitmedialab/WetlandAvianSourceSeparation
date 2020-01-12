@@ -195,7 +195,11 @@ class Conv_TasNet(nn.Module):
         }
 
         state = {
-            "state_dict": model.state_dict(),
+            "state_dict": (
+                model.module.state_dict()
+                if isinstance(model, nn.DataParallel)
+                else model.state_dict()
+            ),
             "optim_dict": optimizer.state_dict(),
         }
 
