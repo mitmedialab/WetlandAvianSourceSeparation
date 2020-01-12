@@ -430,7 +430,7 @@ class Solver:
             return False
 
         cv_losses = self.history.data["validation_loss"]
-        if cv_loss > cv_losses[-3]:
+        if cv_loss > min(cv_losses):
             lr = factor * lr
             optim_state["param_groups"][0]["lr"] = lr
             self.optim.load_state_dict(optim_state)
