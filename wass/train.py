@@ -256,7 +256,12 @@ class Solver:
         """
         self.criterion = SI_SNR()
         if self.cuda:
-            self.criterion = self.criterion.cuda()
+            is_one_gpu = len(self.cuda_devices) == 1
+            self.criterion = (
+                self.criterion.cuda()
+                if is_one_gpu
+                else nn.DataParallel(self.criterion, self.cuda_devices).cuda()
+            )
 
     def _init_optim(self: "Solver") -> None:
         """Initialize Optimize
