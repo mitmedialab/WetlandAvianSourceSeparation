@@ -105,9 +105,14 @@ class TrainingHistory:
         path, exp_name, _ = path.split("/")[-4:]
         keys = [key.strip() for key in lines[0].split(";")]
 
+        def convert(x: str) -> Union[float, bool]:
+            if "False" in x or "True" in x:
+                return bool(x)
+            return float(x)
+
         data = {
             key: [
-                float(lines[1 + i].split(";")[k])
+                convert(lines[1 + i].split(";")[k].strip())
                 for i in range(len(lines) - 1)
             ]
             for k, key in enumerate(keys)
