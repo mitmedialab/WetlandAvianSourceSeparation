@@ -446,9 +446,12 @@ class Solver:
         Saves history of losses and model state (checkpoint).
         """
         self.history.save()
-        torch.save(
-            Conv_TasNet.serialize(self.model, self.optim), self.model_path
+        model = (
+            self.model.module
+            if self.cuda and len(self.cuda_devices) > 1
+            else self.model
         )
+        torch.save(Conv_TasNet.serialize(model, self.optim), self.model_path)
 
 
 if __name__ == "__main__":
