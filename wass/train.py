@@ -251,7 +251,7 @@ class Solver:
             self.model = (
                 self.model.cuda()
                 if is_one_gpu
-                else nn.DataParallel(self.model, self.cuda_devices)
+                else nn.DataParallel(self.model, self.cuda_devices).cuda()
             )
 
     def _init_criterion(self: "Solver") -> None:
