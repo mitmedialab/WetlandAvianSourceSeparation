@@ -4,9 +4,6 @@ The file contains all methods and classes needed to train the Conv-TasNet model
 and saving its progress. The Solver class performs all the operations and is
 initialized with a YAML configuration file for modularity, reproduction and 
 test benchmarks.
-
-@TODO:
-    - Implement learning rate decay following original paper proceedure
 """
 import os
 import yaml
@@ -299,14 +296,16 @@ class Solver:
 
             tr_loss = self._train()
             cv_loss = self._test()
+            halved = self._update_learning_rate(cv_loss)
 
             tr_tendency = self._tendency(tr_loss, "training_loss")
             cv_tendency = self._tendency(cv_loss, "validation_loss")
 
-            self.history += (tr_loss, cv_loss)
+            self.history += (tr_loss, cv_loss, halved)
             infos = f"Epoch [{epoch+1}/{epochs}]:\n"
             infos += f"\ttr_loss: {tr_loss} {tr_tendency}\n"
             infos += f"\tcv_loss: {cv_loss} {cv_tendency}\n"
+            infos += f"\thalved: {halved}\n"
             print(infos)
 
             save = ((epoch + 1) % self.train_config.saving_rate) == 0
@@ -393,6 +392,47 @@ class Solver:
         cv_loss /= len(self.test_loader)
 
         return cv_loss
+
+    def _update_learning_rate(
+        self: "Solver", cv_loss: float, factor: float = 0.5
+    ) -> bool:
+        """Update Learning Rate
+
+        Half the learning rate if not improvement in the validation loss since
+        3 epochs.
+
+        Arguments:
+            cv_loss {float} -- current validation loss
+        
+        Keyword Arguments:
+            factor {float} -- factor to be multiplied with lr (default: {0.5})
+
+        Returns:
+            bool -- has the learning rate been halved
+        """
+        optim_state = self.optim.state_dict()
+        lr = optim_state["param_groups"][0]["lr"]
+
+        if len(self.history) < 3:
+            return False
+
+        if (
+            self.history["halved"][-1]
+            or self.history["halved"][-2]
+            or self.history["halved"][-3]
+        ):
+            return False
+
+        cv_losses = self.history.data["validation_loss"]
+        if cv_loss > cv_losses[-3]:
+            lr = factor * lr
+            optim_state["param_groups"][0]["lr"] = lr
+            self.optim.load_state_dict(optim_state)
+
+            print(f"No Imporvement for 3 epochs. Learning rate halved: {lr}")
+            return True
+
+        return False
 
     def _save(self: "Solver") -> None:
         """Save Progress

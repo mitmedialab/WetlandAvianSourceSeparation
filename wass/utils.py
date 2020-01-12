@@ -5,7 +5,7 @@ The file prevides helper methods and classes for the entire repository:
 """
 import os
 
-from typing import Tuple, Dict, List
+from typing import Tuple, Dict, List, Union
 
 
 class TrainingHistory:
@@ -14,7 +14,7 @@ class TrainingHistory:
     Attributes:
         path {str} -- path where to save the experiment
         exp_name {str} -- experiment name (will be folder name within path)
-        data {Dict[str, List[float]]} -- data from experiment
+        data {Dict[str, List[Union[float, bool]]]} -- data from experiment
         dir {str} -- path to experiment directory
     """
 
@@ -22,7 +22,7 @@ class TrainingHistory:
         self: "TrainingHistory",
         path: str,
         exp_name: str,
-        data: Dict[str, List[float]] = None,
+        data: Dict[str, List[Union[float, bool]]] = None,
     ) -> None:
         """Initialization
         
@@ -31,14 +31,14 @@ class TrainingHistory:
             exp_name {str} -- experiment name (will be folder name within path)
         
         Keyword Arguments:
-            data {Dict[str, List[float]]} -- data from previews experiment
-                (default: {None})
+            data {Dict[str, List[Union[float, bool]]]} -- data from previews 
+                experiment (default: {None})
         """
         self.path = path
         self.exp_name = exp_name
 
         self.data = (
-            {"training_loss": [], "validation_loss": []}
+            {"training_loss": [], "validation_loss": [], "halved": []}
             if data is None
             else data
         )
@@ -56,19 +56,21 @@ class TrainingHistory:
         return len(self.data["training_loss"])
 
     def __iadd__(
-        self: "TrainingHistory", datum: Tuple[float, float]
+        self: "TrainingHistory", datum: Tuple[float, float, bool]
     ) -> "TrainingHistory":
         """Incremental Addition
         
         Arguments:
-            datum {Tuple[float, float]} -- snapshot of the tr and cv loss
+            datum {Tuple[float, float, bool]} -- snapshot of the tr, cv loss, 
+                and halved (for the learning rate)
 
         Returns:
             TrainingHistory -- modified training history
         """
-        tr_loss, cv_loss = datum
+        tr_loss, cv_loss, halved = datum
         self.data["training_loss"].append(tr_loss)
         self.data["validation_loss"].append(cv_loss)
+        self.data["halved"].append(halved)
 
         return self
 
