@@ -213,17 +213,23 @@ class Solver:
     def _init_dataloaders(self: "Solver") -> None:
         """Initialize Data Loaders
         """
+        batch_size = (
+            self.train_config.batch_size
+            if not self.cuda
+            else self.train_config.batch_size / len(self.cuda_devices)
+        )
+
         self.train_loader = DataLoader(
             self.train_dataset,
             shuffle=True,
-            batch_size=self.train_config.batch_size,
+            batch_size=batch_size,
             num_workers=self.train_config.n_workers,
             pin_memory=self.cuda,
         )
         self.test_loader = DataLoader(
             self.test_dataset,
             shuffle=False,
-            batch_size=self.train_config.batch_size,
+            batch_size=batch_size,
             num_workers=self.train_config.n_workers,
             pin_memory=self.cuda,
         )
@@ -256,12 +262,7 @@ class Solver:
         """
         self.criterion = SI_SNR()
         if self.cuda:
-            is_one_gpu = len(self.cuda_devices) == 1
-            self.criterion = (
-                self.criterion.cuda()
-                if is_one_gpu
-                else nn.DataParallel(self.criterion, self.cuda_devices).cuda()
-            )
+            self.criterion = self.criterion.cuda()
 
     def _init_optim(self: "Solver") -> None:
         """Initialize Optimize
