@@ -213,7 +213,7 @@ class Solver:
     def _init_dataloaders(self: "Solver") -> None:
         """Initialize Data Loaders
         """
-        batch_size = (
+        batch_size = int(
             self.train_config.batch_size
             if not self.cuda
             else self.train_config.batch_size / len(self.cuda_devices)
