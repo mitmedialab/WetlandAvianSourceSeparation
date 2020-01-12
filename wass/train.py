@@ -423,9 +423,9 @@ class Solver:
             return False
 
         if (
-            self.history["halved"][-1]
-            or self.history["halved"][-2]
-            or self.history["halved"][-3]
+            self.history.data["halved"][-1]
+            or self.history.data["halved"][-2]
+            or self.history.data["halved"][-3]
         ):
             return False
 
