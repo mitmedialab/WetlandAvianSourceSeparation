@@ -378,26 +378,27 @@ class Solver:
         Returns:
             float -- test loss (averaged over batches)
         """
-        self.model.eval()
-        cv_loss = 0.0
-        pbar = tqdm(
-            self.test_loader, desc="Test Batch", position=0, leave=True
-        )
-        for b, batch in enumerate(pbar):
-            mixture, source = batch
-            if self.cuda:
-                mixture = mixture.cuda()
-                source = source.cuda()
+        with torch.no_grad():
+            self.model.eval()
+            cv_loss = 0.0
+            pbar = tqdm(
+                self.test_loader, desc="Test Batch", position=0, leave=True
+            )
+            for b, batch in enumerate(pbar):
+                mixture, source = batch
+                if self.cuda:
+                    mixture = mixture.cuda()
+                    source = source.cuda()
 
-            estimate = self.model(mixture)
-            loss = self.criterion(estimate, source)
+                estimate = self.model(mixture)
+                loss = self.criterion(estimate, source)
 
-            cv_loss += loss.item()
-            pbar.set_postfix(cv_loss=cv_loss / (b + 1))
+                cv_loss += loss.item()
+                pbar.set_postfix(cv_loss=cv_loss / (b + 1))
 
-        cv_loss /= len(self.test_loader)
+            cv_loss /= len(self.test_loader)
 
-        return cv_loss
+            return cv_loss
 
     def _update_learning_rate(
         self: "Solver", cv_loss: float, factor: float = 0.5

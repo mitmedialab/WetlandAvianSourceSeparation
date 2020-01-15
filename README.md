@@ -6,18 +6,27 @@ The repository is currently under **development**.
 
 To install all the necessary dependencies for this repository install all the python libraries using the `pip` command *(may require the use of sudo)*:
 ```bash
-pip3 install -r requirements.txt
+$ pip3 install -r requirements.txt
 ```
 
 ## Usage
 
 Scripts must be used with the following command:
 ```bash
-python3 -m wass [-h] [-t] [-c CONFIG] [-g GPU]
+# Help
+$ python3 -m wass [-h] 
+
+# Train
+$ pyfhon3 -m wass [-t] [--config CONFIG] [--gpu GPU [GPU ...]]
+
+# Demo
+$ python3 -m wass [-d] [--model MODEL] [--mixture MIXTURE] [--dest DEST]
 ```
 
-```
-usage: wass [-h] [-t] [-c CONFIG] [-g GPU [GPU ...]]
+```bash
+$ python3 -m wass -h
+usage: wass [-h] [-t] [--config CONFIG] [--gpu GPU [GPU ...]] [-d]
+            [--model MODEL] [--mixture MIXTURE] [--dest DEST]
 
 Wetland Avian Source Separation (WASS) -- Scripts
 	Source Code:
@@ -29,12 +38,16 @@ Wetland Avian Source Separation (WASS) -- Scripts
     
 
 optional arguments:
-  -h, --help            show this help message and exit
-  -t, --train           training procedure
-  -c CONFIG, --config CONFIG
-                        training configuration file path
-  -g GPU [GPU ...], --gpu GPU [GPU ...]
-                        cuda devices for gpu acceleration
+  -h, --help           show this help message and exit
+
+  -t, --train          training
+  --config CONFIG      training config file path
+  --gpu GPU [GPU ...]  cuda devices
+
+  -d, --demo           demonstration
+  --model MODEL        path to a trained model
+  --mixture MIXTURE    path to a mixture audio file
+  --dest DEST          path to save separated sources
 ```
 
 ### Dataset
@@ -195,8 +208,14 @@ saving_rate: 2
 
 ### Inference
 
-The inference is currently under **development**.
-It will include a script for optimization of the model such as JIT compilation and quantization for faster inference and to enable the use of the model outside of the repository scope.
+Inference is part of the repository for demonstration purposes. If you want to use a trained model prefer to export the model as a `torch.script` file using the provided *(TODO)* JIT compile and quantizer tool. This will allow you to use the model outside of the repository scope *(see Optimization section TODO)*.
+
+Neverthless demo script is available for you to try a freshly trained model by providing the model path, the audio mixture path and the destination path to save the results as wave files *(see above ath the begining of usage section)*.
+
+
+### Optimization
+
+This section is **under development**.
 
 ## References
 
