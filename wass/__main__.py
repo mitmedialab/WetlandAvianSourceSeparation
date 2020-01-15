@@ -69,7 +69,7 @@ if args.demo:
     if args.dest is None:
         parser.error("--demo requires --dest to be provided.")
 
-    inference_demo(args.model, args.mixture, args.destination)
+    inference_demo(args.model, args.mixture, args.dest)
 
     exit(0)
 

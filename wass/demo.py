@@ -22,18 +22,21 @@ def inference_demo(model_path: str, mixture_path: str, dest_path: str) -> None:
         mixture_path {str} -- path to the mixture audio file
         dest_path {str} -- destination path to save the produced signals
     """
+    if not os.path.isdir(dest_path):
+        os.makedirs(dest_path, exist_ok=True)
+
     with torch.no_grad():
         model = Conv_TasNet.load(model_path)
         model.eval()
 
+        mixture, sr = torchaudio.load(mixture_path)
         resampler = torchaudio.transforms.Resample(sr, model.sr)
-        sr, mixture = torchaudio.load(mixture_path)
-        mixture = resammpler(mixture)
+        mixture = resampler(mixture)
         mixture = mixture.mean(dim=0, keepdim=True)
         mixture = mixture.unsqueeze(0)
 
         sources = model(mixture)
-        sources = sources.detach()
+        sources = sources.detach().squeeze(0)
         for s, source in enumerate(sources):
             source_path = os.path.join(dest_path, f"source_{s}.wav")
             torchaudio.save(source_path, source, model.sr)
