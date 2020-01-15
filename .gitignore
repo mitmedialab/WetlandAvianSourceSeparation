@@ -240,5 +240,6 @@ GitHub.sublime-settings
 
 # End of https://www.gitignore.io/api/python,pycharm,sublimetext,visualstudiocode
 
-# Ignore results folder and test file
+# Ignore results and test folder and test file
 /results
+/test
