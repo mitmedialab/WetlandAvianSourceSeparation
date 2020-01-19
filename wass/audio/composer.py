@@ -342,6 +342,25 @@ class Composer:
             if os.path.isdir(os.path.join(ambient_directory, label))
         }
 
+    def _normalize(
+        self: "Composer", X: torch.tensor, dim: int = 0
+    ) -> torch.Tensor:
+        """Normalize
+        
+        Arguments:
+            X {torch.tensor} -- input tensor to be normalized
+        
+        Keyword Arguments:
+            dim {int} -- axis to retrieve max (default: {0})
+        
+        Returns:
+            torch.Tensor -- normalized tensor
+        """
+        X_max, _ = torch.max(torch.abs(X), dim=dim, keepdim=True)
+        X /= X_max
+
+        return X
+
     def __iter__(self: "Composer") -> "Composer":
         """Iterator
         
@@ -356,27 +375,24 @@ class Composer:
         Returns:
             Tuple[torch.Tensor, torch.Tensor] -- next composition and sequences
         """
-        sequencer_keys = sorted(self.sequences.keys())
-        sequences = torch.cat(
-            [next(self.sequencers[key]) for key in sequencer_keys]
-        )
+        seq_keys = sorted(self.sequences.keys())
+        sequences = torch.cat([next(self.sequencers[key]) for key in seq_keys])
         composition = sequences.mean(dim=0, keepdim=True)
 
         if self.focus is not None:
-            idxs = [
-                sequencer_keys.index(label)
-                for label in self.focus
-                if label in sequencer_keys
-            ]
-            sequences = sequences[idxs, ...]
+            labels = [label for label in self.focus if label in seq_keys]
+            idxs = [seq_keys.index(label) for label in labels]
+            sequences = sequences[idxs]
 
-        ambient = torch.cat(
-            [next(self.ambients[key]) for key in sorted(self.ambients.keys())]
-        )
+        amb_keys = sorted(self.ambients.keys())
+        ambient = torch.cat([next(self.ambients[key]) for key in amb_keys])
         ambient = ambient.mean(dim=0, keepdim=True)
 
         composition += ambient
         composition = self.noise(composition)
+
+        composition = self._normalize(composition, dim=1)
+        sequences = self._normalize(composition, dim=1)
 
         return composition, sequences
 
