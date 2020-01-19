@@ -102,7 +102,7 @@ data/
 
 #### Configuration
 
-The generated compositions can be controlled with various parameters through a configuration file saved as a `.yaml` file.
+The generated compositions can be controlled with various parameters through a configuration file saved as a `.yaml` file. The configuration file allows two type of training. You can either decide to separate all labels among all labels or specific labels among all labels.
 
 ```python
 from wass.audio.dataset import ComposerConfig
@@ -119,6 +119,7 @@ config = ComposerConfig(
     duration=4,                # Duration in second
     sr=16000,                  # Sample rate
     snr=(0, 100),              # Signal to noise ratio for Noise
+    focus=None                 # Ability to extract list of labels only
 )
 
 # Save configuration

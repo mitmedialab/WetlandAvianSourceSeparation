@@ -14,7 +14,7 @@ import torchaudio
 
 from wass.audio.composer import Composer
 from torch.utils.data import Dataset
-from typing import Tuple
+from typing import Tuple, List
 from tqdm import tqdm
 
 
@@ -38,6 +38,7 @@ class ComposerConfig:
         noise {AdditiveWhiteGaussianNoise} -- additive white gaussian noise
         sequencers {List[Sequencer]} -- sequencers
         ambients {List[Sequencer]} -- ambient generators
+        focus {List[str]} -- specialize on spcific labels (default: None)
 
     Properties:
         n_label {int} -- number of labels/sources
@@ -54,6 +55,7 @@ class ComposerConfig:
         duration: float = 4,
         sr: int = 16000,
         snr: Tuple[float, float] = (0, 100),
+        focus: List[str] = None,
     ) -> None:
         """Initialization
         
@@ -74,6 +76,7 @@ class ComposerConfig:
             sr {int} -- sample rate (default: {16000})
             snr {Tuple[float, float]} -- signal to noise ratio range for ADWGN 
                 (default: {(0, 54)})
+            focus {List[str]} -- specialize on spcific labels (default: None)
         """
         self.label_directory = label_directory
         self.ambient_directory = ambient_directory
@@ -84,6 +87,7 @@ class ComposerConfig:
         self.duration = duration
         self.sr = sr
         self.snr = snr
+        self.focus = focus
 
     @property
     def n_label(self: "ComposerConfig") -> int:
@@ -92,16 +96,15 @@ class ComposerConfig:
         Returns:
             int -- number of labels/sources
         """
-        n_label = len(
-            list(
-                filter(
-                    lambda dir: os.path.isdir(
-                        os.path.join(self.label_directory, dir)
-                    ),
-                    os.listdir(self.label_directory),
-                )
-            )
-        )
+        if self.focus is None:
+            path_fn = lambda dir: os.path.join(self.label_directory, dir)
+            filter_fn = lambda dir: os.path.isdir(path_fn(dir))
+
+            dirs = os.listdir(self.label_directory)
+            filtered = list(filter(filter_fn, dirs))
+            n_label = len(filtered)
+        else:
+            n_label = len(self.focus)
 
         return n_label
 

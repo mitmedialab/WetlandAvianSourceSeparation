@@ -18,7 +18,7 @@ import torchaudio
 import numpy as np
 import torch.nn as nn
 
-from typing import Tuple
+from typing import Tuple, List
 
 
 class AdditiveWhiteGaussianNoise(nn.Module):
@@ -268,6 +268,7 @@ class Composer:
         noise {AdditiveWhiteGaussianNoise} -- additive white gaussian noise
         sequencers {List[Sequencer]} -- sequencers
         ambients {List[Sequencer]} -- ambient generators
+        focus {List[str]} -- specialize on spcific labels
     """
 
     def __init__(
@@ -281,6 +282,7 @@ class Composer:
         duration: float = 4,
         sr: int = 16000,
         snr: Tuple[float, float] = (0, 100),
+        focus: List[str] = None,
     ) -> None:
         """Initialization
         
@@ -299,6 +301,7 @@ class Composer:
             sr {int} -- sample rate (default: {16000})
             snr {Tuple[float, float]} -- signal to noise ratio range for ADWGN 
                 (default: {(0, 54)})
+            focus {List[str]} -- specialize on spcific labels (default: None)
         """
         self.label_directory = label_directory
         self.ambient_directory = ambient_directory
@@ -309,6 +312,7 @@ class Composer:
         self.duration = duration
         self.sr = sr
         self.snr = snr
+        self.focus = focus
 
         self.noise = AdditiveWhiteGaussianNoise(snr)
 
@@ -352,13 +356,19 @@ class Composer:
         Returns:
             Tuple[torch.Tensor, torch.Tensor] -- next composition and sequences
         """
+        sequencer_keys = sorted(self.sequences.keys())
         sequences = torch.cat(
-            [
-                next(self.sequencers[key])
-                for key in sorted(self.sequencers.keys())
-            ]
+            [next(self.sequencers[key]) for key in sequencer_keys]
         )
         composition = sequences.mean(dim=0, keepdim=True)
+
+        if self.focus is not None:
+            idxs = [
+                sequencer_keys.index(label)
+                for label in self.focus
+                if label in sequencer_keys
+            ]
+            sequences = sequences[idxs, ...]
 
         ambient = torch.cat(
             [next(self.ambients[key]) for key in sorted(self.ambients.keys())]
