@@ -18,6 +18,7 @@ import torchaudio
 import numpy as np
 import torch.nn as nn
 
+from collections import OrderedDict
 from typing import Tuple, List
 
 
@@ -316,31 +317,37 @@ class Composer:
 
         self.noise = AdditiveWhiteGaussianNoise(snr)
 
-        self.sequencers = {
-            label: Sequencer(
+        self.sequencers = OrderedDict(
+            (
                 label,
-                os.path.join(label_directory, label),
-                label_size,
-                label_scale,
-                duration,
-                sr,
+                Sequencer(
+                    label,
+                    os.path.join(label_directory, label),
+                    label_size,
+                    label_scale,
+                    duration,
+                    sr,
+                ),
             )
             for label in sorted(os.listdir(label_directory))
             if os.path.isdir(os.path.join(label_directory, label))
-        }
+        )
 
-        self.ambients = {
-            label: Ambient(
+        self.ambients = OrderedDict(
+            (
                 label,
-                os.path.join(ambient_directory, label),
-                ambient_size,
-                ambient_scale,
-                duration,
-                sr,
+                Ambient(
+                    label,
+                    os.path.join(ambient_directory, label),
+                    ambient_size,
+                    ambient_scale,
+                    duration,
+                    sr,
+                ),
             )
             for label in sorted(os.listdir(ambient_directory))
             if os.path.isdir(os.path.join(ambient_directory, label))
-        }
+        )
 
     def _normalize(
         self: "Composer", X: torch.tensor, dim: int = 0
@@ -375,7 +382,7 @@ class Composer:
         Returns:
             Tuple[torch.Tensor, torch.Tensor] -- next composition and sequences
         """
-        seq_keys = sorted(self.sequences.keys())
+        seq_keys = self.sequences.keys()
         sequences = torch.cat([next(self.sequencers[key]) for key in seq_keys])
         composition = sequences.mean(dim=0, keepdim=True)
 
@@ -384,7 +391,7 @@ class Composer:
             idxs = [seq_keys.index(label) for label in labels]
             sequences = sequences[idxs]
 
-        amb_keys = sorted(self.ambients.keys())
+        amb_keys = self.ambients.keys()
         ambient = torch.cat([next(self.ambients[key]) for key in amb_keys])
         ambient = ambient.mean(dim=0, keepdim=True)
 
