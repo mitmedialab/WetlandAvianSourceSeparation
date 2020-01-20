@@ -386,7 +386,7 @@ class Composer:
         sequences = torch.cat([next(self.sequencers[key]) for key in seq_keys])
         composition = sequences.mean(dim=0, keepdim=True)
 
-        if not self.focus:
+        if self.focus:
             labels = [label for label in self.focus if label in seq_keys]
             idxs = [seq_keys.index(label) for label in labels]
             sequences = sequences[idxs]
