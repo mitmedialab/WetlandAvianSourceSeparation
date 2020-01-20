@@ -399,7 +399,7 @@ class Composer:
         composition = self.noise(composition)
 
         composition = self._normalize(composition, dim=1)
-        sequences = self._normalize(composition, dim=1)
+        sequences = self._normalize(sequences, dim=1)
 
         return composition, sequences
 
