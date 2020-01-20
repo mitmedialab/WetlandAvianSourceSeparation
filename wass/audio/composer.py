@@ -382,7 +382,7 @@ class Composer:
         Returns:
             Tuple[torch.Tensor, torch.Tensor] -- next composition and sequences
         """
-        seq_keys = self.sequences.keys()
+        seq_keys = self.sequencers.keys()
         sequences = torch.cat([next(self.sequencers[key]) for key in seq_keys])
         composition = sequences.mean(dim=0, keepdim=True)
 
