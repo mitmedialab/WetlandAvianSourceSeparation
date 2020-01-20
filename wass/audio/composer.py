@@ -283,7 +283,7 @@ class Composer:
         duration: float = 4,
         sr: int = 16000,
         snr: Tuple[float, float] = (0, 100),
-        focus: List[str] = None,
+        focus: List[str] = [],
     ) -> None:
         """Initialization
         
@@ -302,7 +302,7 @@ class Composer:
             sr {int} -- sample rate (default: {16000})
             snr {Tuple[float, float]} -- signal to noise ratio range for ADWGN 
                 (default: {(0, 54)})
-            focus {List[str]} -- specialize on spcific labels (default: None)
+            focus {List[str]} -- specialize on spcific labels (default: [])
         """
         self.label_directory = label_directory
         self.ambient_directory = ambient_directory
@@ -386,7 +386,7 @@ class Composer:
         sequences = torch.cat([next(self.sequencers[key]) for key in seq_keys])
         composition = sequences.mean(dim=0, keepdim=True)
 
-        if self.focus is not None:
+        if not self.focus:
             labels = [label for label in self.focus if label in seq_keys]
             idxs = [seq_keys.index(label) for label in labels]
             sequences = sequences[idxs]

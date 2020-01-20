@@ -38,7 +38,7 @@ class ComposerConfig:
         noise {AdditiveWhiteGaussianNoise} -- additive white gaussian noise
         sequencers {List[Sequencer]} -- sequencers
         ambients {List[Sequencer]} -- ambient generators
-        focus {List[str]} -- specialize on spcific labels (default: None)
+        focus {List[str]} -- specialize on spcific labels (default: [])
 
     Properties:
         n_label {int} -- number of labels/sources
@@ -55,7 +55,7 @@ class ComposerConfig:
         duration: float = 4,
         sr: int = 16000,
         snr: Tuple[float, float] = (0, 100),
-        focus: List[str] = None,
+        focus: List[str] = [],
     ) -> None:
         """Initialization
         
@@ -96,15 +96,15 @@ class ComposerConfig:
         Returns:
             int -- number of labels/sources
         """
-        if self.focus is None:
-            path_fn = lambda dir: os.path.join(self.label_directory, dir)
-            filter_fn = lambda dir: os.path.isdir(path_fn(dir))
+        if self.focus:
+            return len(self.focus)
 
-            dirs = os.listdir(self.label_directory)
-            filtered = list(filter(filter_fn, dirs))
-            n_label = len(filtered)
-        else:
-            n_label = len(self.focus)
+        path_fn = lambda dir: os.path.join(self.label_directory, dir)
+        filter_fn = lambda dir: os.path.isdir(path_fn(dir))
+
+        dirs = os.listdir(self.label_directory)
+        filtered = list(filter(filter_fn, dirs))
+        n_label = len(filtered)
 
         return n_label
 
