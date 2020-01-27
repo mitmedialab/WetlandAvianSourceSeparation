@@ -83,6 +83,7 @@ class TrainingConfig:
         self.saving_path = saving_path
         self.exp_name = exp_name
         self.saving_rate = saving_rate
+        self.pit = pit
 
     def save(self: "TrainingConfig", path: str) -> None:
         """Save to YAML
