@@ -90,7 +90,7 @@ class SI_SNR(nn.Module):
             max_snr /= C
 
         si_snr = max_snr if self.pit else pair_wise_si_snr
-        loss = 0 - torch.mean(max_snr)
+        loss = 0 - torch.mean(si_snr)
 
         return loss
 
