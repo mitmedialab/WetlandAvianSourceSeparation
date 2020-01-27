@@ -16,23 +16,26 @@ from itertools import permutations
 
 
 class SI_SNR(nn.Module):
-    """Scale Invariant Signal to Noise Ratio with PIT Training
+    """Scale Invariant Signal to Noise Ratio with support for PIT Training
     
     Adapted from:
         - https://github.com/kaituoxu/Conv-TasNet
 
     Attributes:
         eps {float} -- epsilon to avoid 0 division
+        pit {bool} -- use pit training https://arxiv.org/abs/1607.00325
     """
 
-    def __init__(self: "SI_SNR", eps: float = 1e-8) -> None:
+    def __init__(self: "SI_SNR", eps: float = 1e-8, pit: bool = False) -> None:
         """Initialization
 
         Keyword Arguments:
             eps {float} -- epsilon to avoid 0 division (default: {1e-8})
+            pit {bool} -- use pit training (default: {False})
         """
         super(SI_SNR, self).__init__()
         self.eps = eps
+        self.pit = pit
 
     def forward(
         self: "SI_SNR", Y_: torch.Tensor, Y: torch.Tensor
@@ -72,17 +75,21 @@ class SI_SNR(nn.Module):
         )
         pair_wise_si_snr = 10 * torch.log10(pair_wise_si_snr + self.eps)
 
-        perms = Y.new_tensor(list(permutations(range(C)))).long()
-        index = torch.unsqueeze(perms, 2)
-        perms_one_hot = Y.new_zeros((*perms.size(), C)).scatter_(2, index, 1)
-        snr_set = torch.einsum(
-            "bij,pij->bp", [pair_wise_si_snr, perms_one_hot]
-        )
+        if self.pit:
+            perms = Y.new_tensor(list(permutations(range(C)))).long()
+            index = torch.unsqueeze(perms, 2)
+            perms_one_hot = Y.new_zeros((*perms.size(), C)).scatter_(
+                2, index, 1
+            )
+            snr_set = torch.einsum(
+                "bij,pij->bp", [pair_wise_si_snr, perms_one_hot]
+            )
 
-        max_snr_idx = torch.argmax(snr_set, dim=1)
-        max_snr, _ = torch.max(snr_set, dim=1)
-        max_snr /= C
+            max_snr_idx = torch.argmax(snr_set, dim=1)
+            max_snr, _ = torch.max(snr_set, dim=1)
+            max_snr /= C
 
+        si_snr = max_snr if self.pit else pair_wise_si_snr
         loss = 0 - torch.mean(max_snr)
 
         return loss

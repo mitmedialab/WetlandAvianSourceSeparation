@@ -9,6 +9,15 @@ To install all the necessary dependencies for this repository install all the py
 $ pip3 install -r requirements.txt
 ```
 
+```txt
+torch>=1.2.0
+numpy>=1.13.3
+torchaudio>=0.3.0
+matplotlib>=2.1.1
+tqdm>=4.36.1
+PyYAML>=5.3
+```
+
 ## Usage
 
 Scripts must be used with the following command:
@@ -187,7 +196,8 @@ config = TrainingConfig(
     composer_conf_path=composer_conf, # path to a composer configuration
     saving_path="results",            # path to save the experiment
     exp_name="experiment_01",         # experiment name
-    saving_rate=2                     # rate to save progress
+    saving_rate=2,                    # rate to save progress
+    pit=False                         # use pit training
 )
 ```
 
@@ -205,6 +215,7 @@ composer_conf_path: config/composer/default.yaml
 saving_path: results
 exp_name: default
 saving_rate: 2
+pit: false
 ```
 
 ### Inference

@@ -38,6 +38,7 @@ class TrainingConfig:
         saving_path {str} -- path where to save the experiment
         exp_name {str} -- experiment name (will be folder name within path)
         saving_rate {int} -- rate to save progress
+        pit {bool} -- use pit training
     """
 
     def __init__(
@@ -53,6 +54,7 @@ class TrainingConfig:
         saving_path: str,
         exp_name: str,
         saving_rate: int,
+        pit: bool,
     ) -> None:
         """Initialization
         
@@ -68,6 +70,7 @@ class TrainingConfig:
             saving_path {str} -- path where to save the experiment
             exp_name {str} -- experiment name (will be folder name within path)
             saving_rate {int} -- rate to save progress
+            pit {bool} -- use pit training
         """
         self.epochs = epochs
         self.lr = lr
@@ -260,7 +263,7 @@ class Solver:
     def _init_criterion(self: "Solver") -> None:
         """Initialize Criterion
         """
-        self.criterion = SI_SNR()
+        self.criterion = SI_SNR(pit=self.train_config.pit)
         if self.cuda:
             self.criterion = self.criterion.cuda()
 

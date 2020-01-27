@@ -9,3 +9,4 @@ composer_conf_path: config/composer/default.yaml
 saving_path: results
 exp_name: default
 saving_rate: 2
+pit: false

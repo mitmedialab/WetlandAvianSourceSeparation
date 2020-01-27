@@ -9,3 +9,4 @@ composer_conf_path: config/composer/test.yaml
 saving_path: results
 exp_name: test
 saving_rate: 1
+pit: false
